@@ -48,12 +48,7 @@ public class FlutterBarcodeScannerPlugin
     static EventChannel.EventSink barcodeStream;
     private EventChannel eventChannel;
 
-    /**
-     * V2 embedding
-     *
-     * @param activity
-     * @param registrar
-     */
+
     private MethodChannel channel;
     private FlutterPluginBinding pluginBinding;
     private ActivityPluginBinding activityBinding;
@@ -77,10 +72,9 @@ public class FlutterBarcodeScannerPlugin
             return;
         }
         Activity activity = registrar.activity();
-        Application applicationContext = null;
-        if (registrar.context() != null) {
-            applicationContext = (Application) (registrar.context().getApplicationContext());
-        }
+        Application applicationContext;
+        registrar.context();
+        applicationContext = (Application) (registrar.context().getApplicationContext());
         FlutterBarcodeScannerPlugin instance = new FlutterBarcodeScannerPlugin(registrar.activity(), registrar);
         instance.createPluginSetup(registrar.messenger(), applicationContext, activity, registrar, null);
     }
@@ -142,16 +136,16 @@ public class FlutterBarcodeScannerPlugin
                         String barcodeResult = barcode.rawValue;
                         pendingResult.success(barcodeResult);
                     } catch (Exception e) {
-                        pendingResult.success("-1");
+                        pendingResult.success(null);
                     }
                 } else {
-                    pendingResult.success("-1");
+                    pendingResult.success(null);
                 }
                 pendingResult = null;
                 arguments = null;
                 return true;
             } else {
-                pendingResult.success("-1");
+                pendingResult.success(null);
             }
         }
         return false;
@@ -182,12 +176,9 @@ public class FlutterBarcodeScannerPlugin
     public static void onBarcodeScanReceiver(final Barcode barcode) {
         try {
             if (barcode != null && !barcode.displayValue.isEmpty()) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        barcodeStream.success(barcode.rawValue);
-                    }
-                });
+                activity.runOnUiThread(() -> barcodeStream.success(barcode.rawValue));
+            }else{
+                activity.runOnUiThread(() -> barcodeStream.success(null));
             }
         } catch (Exception e) {
             Log.e(TAG, "onBarcodeScanReceiver: " + e.getLocalizedMessage());

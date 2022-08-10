@@ -82,8 +82,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
     private ScaleGestureDetector scaleGestureDetector;
     private GestureDetector gestureDetector;
 
-    private ImageView imgViewBarcodeCaptureUseFlash;
-    // private ImageView imgViewSwitchCamera;
+    private ImageView closeIv;
 
     public static int SCAN_MODE = SCAN_MODE_ENUM.BARCODE.ordinal();
 
@@ -101,8 +100,8 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
         try {
             setContentView(R.layout.barcode_capture);
 
-            imgViewBarcodeCaptureUseFlash = findViewById(R.id.imgViewBarcodeCaptureUseFlash);
-            imgViewBarcodeCaptureUseFlash.setOnClickListener(this);
+            closeIv = findViewById(R.id.closeIv);
+            closeIv.setOnClickListener(this);
 
             mPreview = findViewById(R.id.preview);
             mGraphicOverlay = findViewById(R.id.graphicOverlay);
@@ -389,7 +388,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
     @Override
     public void onClick(View v) {
         int i = v.getId();
-        if (i == R.id.imgViewBarcodeCaptureUseFlash) {
+        if (i == R.id.closeIv) {
             FlutterBarcodeScannerPlugin.onBarcodeScanReceiver(null);
             finish();
         }
