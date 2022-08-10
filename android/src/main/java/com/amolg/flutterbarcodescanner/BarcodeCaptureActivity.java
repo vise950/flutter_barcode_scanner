@@ -17,7 +17,6 @@
 package com.amolg.flutterbarcodescanner;
 
 import android.Manifest;
-import android.media.MediaPlayer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -28,37 +27,31 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-
-import com.amolg.flutterbarcodescanner.constants.AppConstants;
-import com.amolg.flutterbarcodescanner.utils.AppUtil;
-import com.amolg.flutterbarcodescanner.utils.CentralDetector;
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.core.app.ActivityCompat;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.amolg.flutterbarcodescanner.camera.CameraSource;
 import com.amolg.flutterbarcodescanner.camera.CameraSourcePreview;
 import com.amolg.flutterbarcodescanner.camera.GraphicOverlay;
+import com.amolg.flutterbarcodescanner.constants.AppConstants;
+import com.amolg.flutterbarcodescanner.utils.AppUtil;
+import com.amolg.flutterbarcodescanner.utils.CentralDetector;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
 
@@ -99,13 +92,6 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
         DEFAULT
     }
 
-    enum USE_FLASH {
-        ON,
-        OFF
-    }
-
-    private int flashStatus = USE_FLASH.OFF.ordinal();
-
     /**
      * Initializes the UI and creates the detector pipeline.
      */
@@ -115,38 +101,20 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
         try {
             setContentView(R.layout.barcode_capture);
 
-            String buttonText = "";
-            try {
-                buttonText = (String) getIntent().getStringExtra("cancelButtonText");
-            } catch (Exception e) {
-                buttonText = "Cancel";
-                Log.e("BCActivity:onCreate()", "onCreate: " + e.getLocalizedMessage());
-            }
-
-            Button btnBarcodeCaptureCancel = findViewById(R.id.btnBarcodeCaptureCancel);
-            btnBarcodeCaptureCancel.setText(buttonText);
-            btnBarcodeCaptureCancel.setOnClickListener(this);
-
             imgViewBarcodeCaptureUseFlash = findViewById(R.id.imgViewBarcodeCaptureUseFlash);
             imgViewBarcodeCaptureUseFlash.setOnClickListener(this);
-            imgViewBarcodeCaptureUseFlash
-                    .setVisibility(FlutterBarcodeScannerPlugin.isShowFlashIcon ? View.VISIBLE : View.GONE);
-
-            // imgViewSwitchCamera = findViewById(R.id.imgViewSwitchCamera);
-            // imgViewSwitchCamera.setOnClickListener(this);
 
             mPreview = findViewById(R.id.preview);
             mGraphicOverlay = findViewById(R.id.graphicOverlay);
 
             // read parameters from the intent used to launch the activity.
             boolean autoFocus = true;
-            boolean useFlash = false;
 
             // Check for the camera permission before accessing the camera. If the
             // permission is not granted yet, request permission.
             int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
             if (rc == PackageManager.PERMISSION_GRANTED) {
-                createCameraSource(autoFocus, useFlash, CameraSource.CAMERA_FACING_BACK);
+                createCameraSource(autoFocus, CameraSource.CAMERA_FACING_BACK);
             } else {
                 requestCameraPermission();
             }
@@ -210,7 +178,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
      * the constant.
      */
     @SuppressLint("InlinedApi")
-    private void createCameraSource(boolean autoFocus, boolean useFlash, int cameraFacing) {
+    private void createCameraSource(boolean autoFocus, int cameraFacing) {
         Context context = getApplicationContext();
 
         // A barcode detector is created to track barcodes. An associated
@@ -254,14 +222,11 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
         CameraSource.Builder builder = new CameraSource.Builder(getApplicationContext(), centralDetector)
                 .setFacing(cameraFacing)
                 .setRequestedPreviewSize(1280, 720)
-                .setRequestedFps(30.0f)
-                .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null);
+                .setRequestedFps(30.0f);
 
         // make sure that auto focus is an available option
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            builder = builder.setFocusMode(
-                    autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE : null);
-        }
+        builder = builder.setFocusMode(
+                autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE : null);
 
         // Stop & release current camera source before creating a new one.
         if (mCameraSource != null) {
@@ -334,8 +299,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
         if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // we have permission, so create the camerasource
             boolean autoFocus = true;
-            boolean useFlash = false;
-            createCameraSource(autoFocus, useFlash, CameraSource.CAMERA_FACING_BACK);
+            createCameraSource(autoFocus, CameraSource.CAMERA_FACING_BACK);
             return;
         }
 
@@ -425,62 +389,9 @@ public final class BarcodeCaptureActivity extends AppCompatActivity
     @Override
     public void onClick(View v) {
         int i = v.getId();
-        if (i == R.id.imgViewBarcodeCaptureUseFlash &&
-                getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
-            try {
-                if (flashStatus == USE_FLASH.OFF.ordinal()) {
-                    flashStatus = USE_FLASH.ON.ordinal();
-                    imgViewBarcodeCaptureUseFlash.setImageResource(R.drawable.ic_barcode_flash_on);
-                    turnOnOffFlashLight(true);
-                } else {
-                    flashStatus = USE_FLASH.OFF.ordinal();
-                    imgViewBarcodeCaptureUseFlash.setImageResource(R.drawable.ic_barcode_flash_off);
-                    turnOnOffFlashLight(false);
-                }
-            } catch (Exception e) {
-                Toast.makeText(this, "Unable to turn on flash", Toast.LENGTH_SHORT).show();
-                Log.e("BarcodeCaptureActivity", "FlashOnFailure: " + e.getLocalizedMessage());
-            }
-        } else if (i == R.id.btnBarcodeCaptureCancel) {
-            Barcode barcode = new Barcode();
-            barcode.rawValue = "-1";
-            barcode.displayValue = "-1";
-            FlutterBarcodeScannerPlugin.onBarcodeScanReceiver(barcode);
+        if (i == R.id.imgViewBarcodeCaptureUseFlash) {
+            FlutterBarcodeScannerPlugin.onBarcodeScanReceiver(null);
             finish();
-        }
-    }
-
-    private int getInverseCameraFacing(int cameraFacing) {
-        if (cameraFacing == CameraSource.CAMERA_FACING_FRONT) {
-            return CameraSource.CAMERA_FACING_BACK;
-        }
-
-        if (cameraFacing == CameraSource.CAMERA_FACING_BACK) {
-            return CameraSource.CAMERA_FACING_FRONT;
-        }
-
-        // Fallback to camera at the back.
-        return CameraSource.CAMERA_FACING_BACK;
-    }
-
-    /**
-     * Turn on and off flash light based on flag
-     *
-     * @param isFlashToBeTurnOn
-     */
-    private void turnOnOffFlashLight(boolean isFlashToBeTurnOn) {
-        try {
-            if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
-                String flashMode = "";
-                flashMode = isFlashToBeTurnOn ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF;
-
-                mCameraSource.setFlashMode(flashMode);
-            } else {
-                Toast.makeText(getBaseContext(), "Unable to access flashlight as flashlight not available",
-                        Toast.LENGTH_SHORT).show();
-            }
-        } catch (Exception e) {
-            Toast.makeText(getBaseContext(), "Unable to access flashlight.", Toast.LENGTH_SHORT).show();
         }
     }
 
