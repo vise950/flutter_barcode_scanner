@@ -160,12 +160,10 @@ class BarcodeScannerViewController: UIViewController {
     private var isCapturing = false
     
     private lazy var xCor: CGFloat! = {
-        return self.isOrientationPortrait ? (screenSize.width - (screenSize.width*0.8))/2 :
-        (screenSize.width - (screenSize.width*0.6))/2
+        return self.isOrientationPortrait ? (screenSize.width - (screenSize.width*0.8))/2 : (screenSize.width - (screenSize.width*0.6))/2
     }()
     private lazy var yCor: CGFloat! = {
-        return self.isOrientationPortrait ? (screenSize.height - (screenSize.width*0.8))/2 :
-        (screenSize.height - (screenSize.height*0.8))/2
+        return self.isOrientationPortrait ? (screenSize.height - (screenSize.width*0.5))/2 : (screenSize.height - (screenSize.height*0.5))/2
     }()
     
     /// Create and return cancel button
@@ -200,7 +198,6 @@ class BarcodeScannerViewController: UIViewController {
     func initUIComponents(){
         if isOrientationPortrait {
             screenHeight = (CGFloat) (screenSize.width * 0.5)
-            
         } else {
             screenHeight = (CGFloat) (screenSize.height * 0.5)
         }
@@ -258,7 +255,6 @@ class BarcodeScannerViewController: UIViewController {
         videoPreviewLayer?.frame = view.layer.bounds
         
         setVideoPreviewOrientation()
-        //videoPreviewLayer?.connection?.videoOrientation = self.isOrientationPortrait ? AVCaptureVideoOrientation.portrait : AVCaptureVideoOrientation.landscapeRight
         
         self.drawUIOverlays{
         }
@@ -524,7 +520,6 @@ extension BarcodeScannerViewController{
             }else{
                 self.isOrientationPortrait = false
             }
-            //self.isOrientationPortrait = self.isLandscape
             
             self.screenSize = UIScreen.main.bounds
             
@@ -542,13 +537,12 @@ extension BarcodeScannerViewController{
             self.xCor = self.isOrientationPortrait ? (self.screenSize.width - (self.screenSize.width*0.8))/2 :
             (self.screenSize.width - (self.screenSize.width*0.6))/2
             
-            self.yCor = self.isOrientationPortrait ? (self.screenSize.height - (self.screenSize.width*0.8))/2 :
-            (self.screenSize.height - (self.screenSize.height*0.8))/2
+            self.yCor = self.isOrientationPortrait ? (self.screenSize.height - (self.screenSize.width*0.5))/2 :
+            (self.screenSize.height - (self.screenSize.height*0.5))/2
             
             self.videoPreviewLayer?.layoutIfNeeded()
             self.removeAllViews {
                 self.drawUIOverlays{
-                    //self.scanlineRect = CGRect(x: self.xCor, y: self.yCor, width:self.isOrientationPortrait ? (self.screenSize.width*0.8) : (self.screenSize.height*0.8), height: 2)
                     self.scanLine.frame  = self.scanlineRect
                     self.scanLine.center = CGPoint(x: self.scanLine.center.x, y: self.scanlineStopY)
                     //                self.moveVertically()
@@ -576,10 +570,18 @@ extension BarcodeScannerViewController{
             self.videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
             break
         case .faceUp:
-            self.videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
+            if !isLandscape{
+                self.videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeRight
+            }else{
+                self.videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
+            }
             break
         case .faceDown:
-            self.videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
+            if !isLandscape{
+                self.videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeRight
+            }else{
+                self.videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
+            }
             break
         @unknown default:
             self.videoPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
