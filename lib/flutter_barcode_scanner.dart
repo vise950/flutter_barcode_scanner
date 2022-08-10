@@ -20,20 +20,11 @@ class FlutterBarcodeScanner {
 
   /// Scan with the camera until a barcode is identified, then return.
   ///
-  /// Shows a scan line with [lineColor] over a scan window. A flash icon is
-  /// displayed if [isShowFlashIcon] is true. The text of the cancel button can
-  /// be customized with the [cancelButtonText] string.
-  static Future<String> scanBarcode(String lineColor, String cancelButtonText,
-      bool isShowFlashIcon, ScanMode scanMode) async {
-    if (cancelButtonText.isEmpty) {
-      cancelButtonText = 'Cancel';
-    }
-
+  /// Shows a scan line with [lineColor] over a scan window.
+  static Future<String> scanBarcode(String lineColor, ScanMode scanMode) async {
     // Pass params to the plugin
     Map params = <String, dynamic>{
       'lineColor': lineColor,
-      'cancelButtonText': cancelButtonText,
-      'isShowFlashIcon': isShowFlashIcon,
       'isContinuousScan': false,
       'scanMode': scanMode.index
     };
@@ -47,21 +38,11 @@ class FlutterBarcodeScanner {
   /// Returns a continuous stream of barcode scans until the user cancels the
   /// operation.
   ///
-  /// Shows a scan line with [lineColor] over a scan window. A flash icon is
-  /// displayed if [isShowFlashIcon] is true. The text of the cancel button can
-  /// be customized with the [cancelButtonText] string. Returns a stream of
-  /// detected barcode strings.
-  static Stream? getBarcodeStreamReceiver(String lineColor,
-      String cancelButtonText, bool isShowFlashIcon, ScanMode scanMode) {
-    if (cancelButtonText.isEmpty) {
-      cancelButtonText = 'Cancel';
-    }
-
+  /// Shows a scan line with [lineColor] over a scan window.
+  static Stream? getBarcodeStreamReceiver(String lineColor, ScanMode scanMode) {
     // Pass params to the plugin
     Map params = <String, dynamic>{
       'lineColor': lineColor,
-      'cancelButtonText': cancelButtonText,
-      'isShowFlashIcon': isShowFlashIcon,
       'isContinuousScan': true,
       'scanMode': scanMode.index
     };
